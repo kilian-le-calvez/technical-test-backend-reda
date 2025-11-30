@@ -1,3 +1,37 @@
+# How to run
+
+## Requirements
+### Docker
+To run the project easily , you will need to install docker on your computer , here is the required documentation to install the requirements :
+[Docker installation guide for linux](https://docs.docker.com/engine/install/)
+[Docker installation guide for mac](https://docs.docker.com/desktop/setup/install/mac-install/)
+[Docker installation guide for windows](https://docs.docker.com/desktop/setup/install/windows-install/)
+To fetch required images to run the project you will need a working internet connection , or the images mentioned in [the docker compose file](docker-compose.yaml) which are :
+- [postgres:16](https://hub.docker.com/_/postgres)
+- [redis:7](https://hub.docker.com/_/redis)
+- [python:3.12-slim](https://hub.docker.com/_/python)
+- [rust:1.83](https://hub.docker.com/_/rust)
+- [debian:stable-slim](https://hub.docker.com/_/debian)
+
+## Architecture
+ <img src="architecture serveur.png">
+
+## How does it work
+### Rust api
+Rust was used to create a basic API , accessible to the public , it uses the Python api route to get the average prices between the two dates given by the route
+### Python api
+The python-api is an internal-only FastAPI service.
+a swagger page is accessible on http://HOST:PORT/docs
+when calling its route , it creates a task on Redis and waits for it to be finished inside the same http request.
+Dealing with the calculation in the same http request was used because of how fast and easy calculation were , Choosing to use a Result retrieval endpoint would have been a good option of calculation were taking a long time 
+### Celery
+Celery was used to treat the tasks created by the python api , and return the result to redis
+### Redis 
+Redis is used to create a queue of tasks for celery to run , and provide the results to the python api
+
+
+# Project specification
+
 # Technical Test for Backend Application (Quantfox)
 
 ## Objective

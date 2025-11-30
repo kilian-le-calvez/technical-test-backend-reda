@@ -1,0 +1,10 @@
+[server]
+bind_address = "0.0.0.0"
+port = 8080
+
+[upstream]
+python_api_base_url = "http://python-api:8000"
+timeout_ms = 5000
+
+[logging]
+level = "info"
