@@ -12,9 +12,12 @@ To fetch required images to run the project you will need a working internet con
 - [python:3.12-slim](https://hub.docker.com/_/python)
 - [rust:1.83](https://hub.docker.com/_/rust)
 - [debian:stable-slim](https://hub.docker.com/_/debian)
-Also , The port 8080 must be free on your system , if you want to change that , feel free to change the values on [docker-compose.yaml](docker-compose.yaml#)
+> [!WARNING]
+> The port 8080 and 8000 must be free on your system , if you want to change that , feel free to change the values on [docker-compose.yaml](docker-compose.yaml#)
 ## Architecture
  <img src="architecture serveur.png">
+
+- as defined in [docker-compose.yaml](docker-compose.yaml#L26) the python api is exposed on the container , but it shouldn't be accessible to public and must be restrained using a firewall 
 
 ## How to run
 You need to run on the root of the project this command : 
@@ -30,22 +33,22 @@ To get the data from the rust api , you might want to use postman , or curl usin
 curl "http://localhost:8080/prices/average?start_date=2025-01-06&end_date=2025-01-07"
 ```
 a swagger is setup for both python-api and rust-api , you can access it via :
-rust swagger : http://localhost:8080/swagger-ui/
-python swagger : http://localhost:8000/swagger-ui/
+- rust swagger : http://localhost:8080/swagger-ui/
+- python swagger : http://localhost:8000/swagger-ui/
 
 
 ## How does it work
 ### Rust api
-Rust was used to create a basic API , accessible to the public , it uses the Python api route to get the average prices between the two dates given by the route
+- Rust was used to create a basic API , accessible to the public , it uses the Python api route to get the average prices between the two dates given by the route
 ### Python api
-The python-api is an internal-only FastAPI service.
-a swagger page is accessible on http://HOST:PORT/docs
-when calling its route , it creates a task on Redis and waits for it to be finished inside the same http request.
-Dealing with the calculation in the same http request was used because of how fast and easy calculation were , Choosing to use a Result retrieval endpoint would have been a good option of calculation were taking a long time 
+- The python-api is an internal-only FastAPI service.
+- a swagger page is accessible on http://HOST:PORT/docs
+- when calling its route , it creates a task on Redis and waits for it to be finished inside the same http request.
+- Dealing with the calculation in the same http request was used because of how fast and easy calculation were , Choosing to use a Result retrieval endpoint would have been a good option of calculation were taking a long time 
 ### Celery
-Celery was used to treat the tasks created by the python api , and return the result to redis
+- Celery was used to treat the tasks created by the python api , and return the result to redis
 ### Redis 
-Redis is used to create a queue of tasks for celery to run , and provide the results to the python api
+- Redis is used to create a queue of tasks for celery to run , and provide the results to the python api
 
 
 # Project specification
