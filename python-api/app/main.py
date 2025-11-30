@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from .routes import router as api_router
 from .config import config
 
-app = FastAPI(title="python-api", docs_url="/docs")
+app = FastAPI(title="python-api", docs_url="/swagger-ui")
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):

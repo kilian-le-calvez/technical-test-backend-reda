@@ -29,6 +29,11 @@ To get the data from the rust api , you might want to use postman , or curl usin
 ```
 curl "http://localhost:8080/prices/average?start_date=2025-01-06&end_date=2025-01-07"
 ```
+a swagger is setup for both python-api and rust-api , you can access it via :
+rust swagger : http://localhost:8080/swagger-ui/
+python swagger : http://localhost:8000/swagger-ui/
+
+
 ## How does it work
 ### Rust api
 Rust was used to create a basic API , accessible to the public , it uses the Python api route to get the average prices between the two dates given by the route
