@@ -12,10 +12,23 @@ To fetch required images to run the project you will need a working internet con
 - [python:3.12-slim](https://hub.docker.com/_/python)
 - [rust:1.83](https://hub.docker.com/_/rust)
 - [debian:stable-slim](https://hub.docker.com/_/debian)
-
+Also , The port 8080 must be free on your system , if you want to change that , feel free to change the values on [docker-compose.yaml](docker-compose.yaml#)
 ## Architecture
  <img src="architecture serveur.png">
 
+## How to run
+You need to run on the root of the project this command : 
+```
+docker compose up -d --build
+```
+or 
+```
+docker-compose up -d --build
+```
+To get the data from the rust api , you might want to use postman , or curl using this command :
+```
+curl "http://localhost:8080/prices/average?start_date=2025-01-06&end_date=2025-01-07"
+```
 ## How does it work
 ### Rust api
 Rust was used to create a basic API , accessible to the public , it uses the Python api route to get the average prices between the two dates given by the route
