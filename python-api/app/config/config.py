@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import tomli
 
-CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.toml"
+CONFIG_PATH = Path(__file__).resolve().parent.parent.parent / "config.toml"
 
 
 @dataclass

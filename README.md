@@ -40,11 +40,26 @@ a swagger is setup for both python-api and rust-api , you can access it via :
 ## How does it work
 ### Rust api
 - Rust was used to create a basic API , accessible to the public , it uses the Python api route to get the average prices between the two dates given by the route
+#### File architecture
+- [src/config](rust-api/src/config/) : Contains [Config.toml](rust-api/Config.toml) loader , it sets ENV variables to the rest of the program
+- [src/docs](rust-api/src/docs) : Contains Swagger application and the components it presents
+- [src/errors](rust-api/src/errors) : Contains the error types we can get on the application 
+- [src/models](rust-api/src/models) : Contains the structures models used by the other components
+- [src/routes](rust-api/src/routes) : Contains the http routes of the applications
+- [src/services](rust-api/src/services) : Contains the generic functions of the python api that can be used by other components 
+- [src/utils](rust-api/src/utils) : Contains the generic functions that can be used by other components
 ### Python api
 - The python-api is an internal-only FastAPI service.
 - a swagger page is accessible on http://HOST:PORT/docs
 - when calling its route , it creates a task on Redis and waits for it to be finished inside the same http request.
 - Dealing with the calculation in the same http request was used because of how fast and easy calculation were , Choosing to use a Result retrieval endpoint would have been a good option of calculation were taking a long time 
+#### File architecture
+- [app/config](python-api/app/config) : Contains [config.toml](python-api/config.toml) loader , it sets ENV variables to the rest of the program
+- [app/db](python-api/app/db) : Contains all the database functions ( Session creation , Special queries , Models)
+- [app/router](python-api/app/router) : Contains the router application and the routes of the API
+- [app/schemas](python-api/app/schemas) : Contains the Response structures
+- [app/services](python-api/app/services) : Contains the data fetching logic
+- [app/tasks](python-api/app/tasks) 
 ### Celery
 - Celery was used to treat the tasks created by the python api , and return the result to redis
 ### Redis 

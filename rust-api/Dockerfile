@@ -1,10 +1,8 @@
 FROM rust:1.83 as builder
 
 WORKDIR /app
-COPY Cargo.toml .
+COPY Cargo.toml Config.toml Cargo.lock ./
 COPY src ./src
-COPY Config.toml ./Config.toml
-
 RUN cargo build --release
 
 FROM debian:stable-slim
@@ -14,3 +12,4 @@ COPY Config.toml ./Config.toml
 
 EXPOSE 8080
 CMD ["rust-api"]
+
