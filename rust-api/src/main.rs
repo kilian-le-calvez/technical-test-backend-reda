@@ -4,13 +4,16 @@ use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use utoipa::{OpenApi, ToSchema};
 use utoipa_swagger_ui::SwaggerUi;
-use utoipa::path;
-use thiserror::Error;
+// REVIEW: Use a linter like clippy to ensure code quality
 use std::str::FromStr;
+use thiserror::Error;
+use utoipa::path;
 
 mod config;
 use crate::config::AppConfig;
 
+// REVIEW: Difficultés à faire l'import de fichiers ? pas de mod.rs, pas de dossier schema avec error.rs, api_types.rs, routes.rs ?
+// NOTE: Première fois rust, vu que c'est petit pas eu l'idée
 
 // ------------------------------
 // Error Handling
@@ -63,7 +66,6 @@ impl ResponseError for ApiError {
     }
 }
 
-
 // ------------------------------
 // API Types
 // ------------------------------
@@ -85,12 +87,15 @@ struct PythonApiError {
     message: String,
 }
 
+// REVIEW: unused
 #[derive(Debug, Serialize, Deserialize)]
 struct PythonApiSuccess {
     data: Vec<DailyAverage>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+// REVIEW: Question, Ça sert à quoi untagged ?
+// NOTE: sait pas
 #[serde(untagged)]
 enum PythonApiResponse {
     Ok { data: Vec<DailyAverage> },
@@ -115,12 +120,14 @@ async fn swagger_test() -> HttpResponse {
         (status = 200, description = "Daily averages", body = [DailyAverage])
     )
 )]
+
+// REVIEW: get_average -> recoit la request, gere les erreurs, elle appelle service python, gestion erreur python, elle formate -> trop de choses dedans
 #[get("/prices/average")]
 async fn get_average(
     query: web::Query<AverageQuery>,
     cfg: web::Data<AppConfig>,
 ) -> Result<HttpResponse, ApiError> {
-
+    // REVIEW: One job per function, aka validation logic in another function
     // Validate dates
     let start = NaiveDate::parse_from_str(&query.start_date, "%Y-%m-%d")
         .map_err(|_| ApiError::Validation("Invalid start_date format".into()))?;
@@ -139,8 +146,14 @@ async fn get_average(
         .build()
         .map_err(|e| ApiError::Internal(Box::new(e)))?;
 
-    let url = format!("{}/internal/average-prices", cfg.upstream.python_api_base_url);
+    let url = format!(
+        "{}/internal/average-prices",
+        cfg.upstream.python_api_base_url
+    );
 
+    // REVIEW: Struct only used once, is it worth it ?
+    // And mostly why define it inside the function ?
+    // NOTE: envie de scopper à cette fonction
     #[derive(Serialize)]
     struct UpstreamPayload<'a> {
         start_date: &'a str,
@@ -157,6 +170,7 @@ async fn get_average(
         .await
         .map_err(|e| ApiError::Upstream(format!("Failed to reach python-api: {}", e)))?;
 
+    // REVIEW: Same for validation of response, maybe a function ?
     let status = resp.status();
     let body_text = resp
         .text()
@@ -167,32 +181,35 @@ async fn get_average(
         if let Ok(err) = serde_json::from_str::<PythonApiError>(&body_text) {
             return Err(ApiError::Upstream(format!("{}: {}", err.code, err.message)));
         }
-        return Err(ApiError::Upstream(format!("Upstream returned status {}", status)));
+        return Err(ApiError::Upstream(format!(
+            "Upstream returned status {}",
+            status
+        )));
     }
 
     let parsed: PythonApiResponse = serde_json::from_str(&body_text)
         .map_err(|e| ApiError::Upstream(format!("Cannot parse upstream JSON: {}", e)))?;
 
     match parsed {
-        PythonApiResponse::Ok { data } =>
-            Ok(HttpResponse::Ok().json(serde_json::json!({ "data": data }))),
-        PythonApiResponse::Err { code, message } =>
-            Err(ApiError::Upstream(format!("{}: {}", code, message))),
+        PythonApiResponse::Ok { data } => {
+            Ok(HttpResponse::Ok().json(serde_json::json!({ "data": data })))
+        }
+        PythonApiResponse::Err { code, message } => {
+            Err(ApiError::Upstream(format!("{}: {}", code, message)))
+        }
     }
 }
 
-
+// REVIEW: Same, file separation ?
 // ------------------------------
 // Swagger Documentation
 // ------------------------------
 #[derive(OpenApi)]
-#[openapi(
-    paths(get_average),
-    components(schemas(AverageQuery, DailyAverage))
-)]
+#[openapi(paths(get_average), components(schemas(AverageQuery, DailyAverage)))]
 pub struct ApiDoc;
 
-
+// REVIEW: The only thing that should be left in main.rs
+// NOTE:
 // ------------------------------
 // Main
 // ------------------------------
@@ -208,11 +225,11 @@ async fn main() -> std::io::Result<()> {
     println!("Starting rust-api at {}", bind_addr);
 
     HttpServer::new(move || {
-    App::new()
+        App::new()
             .app_data(web::Data::new(cfg.clone()))
             .service(
-            SwaggerUi::new("/swagger-ui/{_:.*}")
-                .url("/api-docs/openapi.json", ApiDoc::openapi()),
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
             .service(get_average)
     })
